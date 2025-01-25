@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 
-export default function HomeScreen({ navigation }) {
+export default function App() {
   return (
     <ImageBackground
       source={require("./assets/fondo.jpg")} // Ruta de la imagen de fondo
