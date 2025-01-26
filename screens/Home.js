@@ -10,6 +10,10 @@ import {
 import { StatusBar } from "expo-status-bar";
 
 export default function Home({ navigation }) {
+  const goToPage = (pageName) => {
+    navigation.navigate(pageName);
+  };
+
   return (
     <ImageBackground
       source={require("../assets/fondo.jpg")} // Ruta de la imagen de fondo
@@ -27,7 +31,7 @@ export default function Home({ navigation }) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Routes")} // Navega a la pantalla "Routes"
+            onPress={() => goToPage("Routes")} // Navega a la pantalla "Routes"
           >
             <Text style={styles.buttonText}>Ver rutas</Text>
             <Image
@@ -40,7 +44,7 @@ export default function Home({ navigation }) {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Login")} // Navega a la pantalla "Login"
+            onPress={() => goToPage("Login")} // Navega a la pantalla "Login"
           >
             <Text style={styles.buttonText}>log in</Text>
             <Image
@@ -53,7 +57,7 @@ export default function Home({ navigation }) {
             ¿Aún no tienes una cuenta?,{" "}
             <Text
               style={styles.registerLink}
-              onPress={() => navigation.navigate("Register")}
+              onPress={() => goToPage("Register")}
             >
               Regístrate
             </Text>
