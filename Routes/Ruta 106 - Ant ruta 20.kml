@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Ruta 106 - Ant ruta 20</name>
+    <description><![CDATA[SALIDA: <br>Inicia en el barrio Camelias, calle 29, calle 28, carrera 52b, hasta llegar a la calle 30, carrera 51a bis, carrera 51a, calle 28, carrera 51, carrera 46, calle 24A, carrera 49 A,  calle 19  Avenida Buganviles, Barrio La Rioja, Conjunto Miraflores, Calle 20 Supermercado Olimpica, barrio el Jardin, Coliseo Cubierto Álvaro Sánchez Silva, carrera 19, gira por la calle 16, carrera 17a, calle 14, llega a la avenida La Toma carrera 7, Medilaser, Monumento al Sur, Terminal de Transporte, tomar la carrera 10, calle 4 sur, glorieta del Terminal, carrera 11 sector Andalucia, diagonal 14 Sur, Barrio Timanco, carrera 13, calle 16, Carrera 25, Calle 18E Sur, carrera 31, calle 18 bis, calle 19 Sur, Barrio El Limonar, carrera 38, calle 24 Sur, carrera 33, para continuar hasta el Terminal de Ruta 4to Centenario. <br><br><br>RETORNO:<br>Inicia en Terminal del 4 Centenario, carrera 33, toma la calle 24 Sur, carrera 38, la Cancha de Futbol de Limonar, calle 19 Sur, carrera 31, calle 18 Bis,  calle 18 E Sur, carrera 25, calle 16,  Barrio Timando, calle 13, la Diagonal 14 sur, carrera 11, Glorieta del Terminal, Sector Andalucía, llega a  la carrera 7  Terminal de Transporte, Monumento al Sur, Puente Torcido, calle 8, carrera 14 calle 9, carrera 16, calle 15, carrera 19, calle 18, carrera 27, calle 20, calle 19, Conjunto Residencial Aragón, carrera 46, Barrio la Rioja, carrera 51, calle 28 (calle 30?), carrera 51A bis, carrera 52b, calle 28 y toma la calle 29 barrio Camelias donde termina la ruta.<br>]]></description>
+    <NetworkLink>
+      <name>Ruta 106 - Ant ruta 20</name>
+      <Link>
+        <href><![CDATA[https://www.google.com/maps/d/u/0/kml?forcekml=1&mid=14Ilo25O4k9TcoIVHQK6PbW9aOfnf9L4]]></href>
+      </Link>
+    </NetworkLink>
+  </Document>
+</kml>
