@@ -4,11 +4,11 @@ import { View, StyleSheet, Alert, Button } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_KEY } from "@env";
-// import GeojsonData from "../Routes/Ruta106.geojson";
 
 export default BusRoutes = () => {
   const personImg = require("../assets/person.png");
   const [personLocation, setpersonLocation] = react.useState({
+    // coordenadas de neiva
     latitude: 2.9343961682675244,
     longitude: -75.28085097157924,
   });
@@ -63,6 +63,7 @@ export default BusRoutes = () => {
           image={personImg}
           apikey={GOOGLE_MAPS_KEY}
         />
+
         {/* <Polyline coordinates={[personLocation, destination]} /> */}
       </MapView>
     </View>
