@@ -1,65 +1,76 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ActivityIndicator, Alert } from "react-native";
-import { WebView } from "react-native-webview"; // Importa WebView para mostrar Google Maps
-import * as Location from "expo-location"; // Importa expo-location para obtener la ubicación del usuario
+import * as react from "react";
+import * as Location from "expo-location";
+import { View, StyleSheet, Alert, Button } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
+import { GOOGLE_MAPS_KEY } from "@env";
 
-export default function BusRoutes() {
-  // Estado para almacenar la ubicación del usuario
-  const [userLocation, setUserLocation] = useState(null);
-  // Estado para controlar la carga de la ubicación
-  const [loading, setLoading] = useState(true);
+export default BusRoutes = () => {
+  const personImg = require("../assets/person.png");
+  const [origin, setOrgin] = react.useState({
+    latitude: 2.935124338031733,
+    longitude: -75.28114344248516,
+  });
 
-  // Efecto que se ejecuta al montar el componente
-  useEffect(() => {
-    const getLocation = async () => {
-      // Solicita permisos de ubicación al usuario
-      let { status } = await Location.requestForegroundPermissionsAsync();
+  const [destination, setdestination] = react.useState({
+    latitude: 2.9428080492549773,
+    longitude: -75.29110329036519,
+  });
 
-      if (status !== "granted") {
-        // Muestra una alerta si el usuario deniega los permisos
-        Alert.alert(
-          "Permiso denegado",
-          "Habilita la ubicación para ver tu posición en el mapa."
-        );
-        setLoading(false);
-        return;
-      }
+  // para que se cargue cunado se inicie en la vista
+  react.useEffect(() => {
+    getLocationPermission();
+  }, []);
 
-      // Obtiene la ubicación actual del usuario
-      let location = await Location.getCurrentPositionAsync({});
-      // Guarda la ubicación en el estado
-      setUserLocation(location.coords);
-      // Marca la carga como finalizada
-      setLoading(false);
+  // solicitamos permisos al usuario
+  async function getLocationPermission() {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permiso denegado!");
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+
+    const current = {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
     };
-
-    getLocation(); // Llama a la función para obtener la ubicación
-  }, []); // Se ejecuta solo una vez al montar el componente
-
-  // Construye la URL del mapa de Google Maps con la ruta de los colectivos
-  const googleMapsURL = userLocation
-    ? `https://www.google.com/maps/d/embed?mid=1pz9lihRHXHcju1yyY20xSSJ7nLgg974&ehbc=2E312F&ll=${userLocation.latitude},${userLocation.longitude}&z=14`
-    : "https://www.google.com/maps/d/embed?mid=1pz9lihRHXHcju1yyY20xSSJ7nLgg974&ehbc=2E312F";
+    setOrgin(current);
+  }
 
   return (
     <View style={styles.container}>
-      {loading ? (
-        // Muestra un indicador de carga mientras se obtiene la ubicación
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        // Muestra el mapa con la ruta de los colectivos y la ubicación del usuario
-        <WebView source={{ uri: googleMapsURL }} style={styles.webview} />
-      )}
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      >
+        <Marker coordinate={origin} image={personImg} />
+        <Marker coordinate={destination} />
+        <MapViewDirections
+          origin={origin}
+          destination={destination}
+          apikey={GOOGLE_MAPS_KEY}
+        />
+        {/* <Polyline coordinates={[origin, destination]} /> */}
+      </MapView>
     </View>
   );
-}
+};
 
-// Definición de estilos para la vista
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Ocupa todo el espacio disponible en la pantalla
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  webview: {
-    flex: 1, // Permite que el WebView ocupe toda la pantalla
+  map: {
+    width: "100%",
+    height: "100%",
   },
 });
