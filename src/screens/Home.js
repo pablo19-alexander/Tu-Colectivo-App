@@ -16,7 +16,7 @@ export default function Home({ navigation }) {
 
   return (
     <ImageBackground
-      source={require("../assets/fondo.jpg")} // Ruta de la imagen de fondo
+      source={require("../../assets/fondo.jpg")} // Ruta de la imagen de fondo
       style={styles.container}
       imageStyle={styles.imageBackground} // Aplica el estilo para oscurecer la imagen
     >
@@ -35,7 +35,7 @@ export default function Home({ navigation }) {
           >
             <Text style={styles.buttonText}>Ver rutas</Text>
             <Image
-              source={require("../assets/location.png")}
+              source={require("../../assets/location.png")}
               style={styles.icon}
             />
           </TouchableOpacity>
@@ -48,7 +48,7 @@ export default function Home({ navigation }) {
           >
             <Text style={styles.buttonText}>log in</Text>
             <Image
-              source={require("../assets/login.png")}
+              source={require("../../assets/login.png")}
               style={styles.icon}
             />
           </TouchableOpacity>

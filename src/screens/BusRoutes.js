@@ -4,9 +4,10 @@ import { View, StyleSheet, Alert, Button } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_KEY } from "@env";
+import { GetRouters } from "../api/GetRouters";
 
 export default BusRoutes = () => {
-  const personImg = require("../assets/person.png");
+  const personImg = require("../../assets/person.png");
   const [personLocation, setpersonLocation] = react.useState({
     // coordenadas de neiva
     latitude: 2.9343961682675244,
@@ -20,8 +21,23 @@ export default BusRoutes = () => {
 
   // para que se cargue cuando se inicie en la vista
   react.useEffect(() => {
-    getLocationPermission();
+    (async() => {
+        console.log("hola");
+        await loadRoutes();
+    })();
+    // getLocationPermission();
   }, []);
+
+  const loadRoutes = async () => {
+    try{
+      const response = await GetRouters();
+      console.log(response);
+      // console.log("hola");
+    }
+    catch (error){
+      throw new Error(error);
+    }
+  };
 
   // solicitamos permisos al usuario
   async function getLocationPermission() {
@@ -57,12 +73,12 @@ export default BusRoutes = () => {
         {/* <Marker coordinate={destination} /> */}
 
         {/* marca la ruta */}
-        <MapViewDirections
+        {/* <MapViewDirections
           origin={personLocation}
           destination={destination}
           image={personImg}
           apikey={GOOGLE_MAPS_KEY}
-        />
+        /> */}
 
         {/* <Polyline coordinates={[personLocation, destination]} /> */}
       </MapView>
