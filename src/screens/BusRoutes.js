@@ -1,10 +1,12 @@
 import * as react from "react";
 import * as Location from "expo-location";
 import { View, StyleSheet, Alert, Button } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Geojson, Marker, Polyline } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import { GOOGLE_MAPS_KEY } from "@env";
 import { GetRouters } from "../api/GetRouters";
+import { DOMParser } from "xmldom";
+import { kml } from "@tmcw/togeojson";
 
 export default BusRoutes = () => {
   const personImg = require("../../assets/person.png");
@@ -14,27 +16,30 @@ export default BusRoutes = () => {
     longitude: -75.28085097157924,
   });
 
-  const [destination, setdestination] = react.useState({
-    latitude: 2.9428080492549773,
-    longitude: -75.29110329036519,
-  });
+  const [destination, setdestination] = react.useState();
 
   // para que se cargue cuando se inicie en la vista
   react.useEffect(() => {
-    (async() => {
-        console.log("hola");
-        await loadRoutes();
+    (async () => {
+      await loadRoutes();
     })();
-    // getLocationPermission();
+    getLocationPermission();
   }, []);
 
   const loadRoutes = async () => {
-    try{
+    try {
       const response = await GetRouters();
-      console.log(response);
+      //console.log(response);
+
+      if (response != null) {
+        const theKml = new DOMParser().parseFromString(response);
+        const converted = kml(theKml);
+        console.log("esta es las cordenas" + converted);
+        setdestination(converted);
+      }
+
       // console.log("hola");
-    }
-    catch (error){
+    } catch (error) {
       throw new Error(error);
     }
   };
@@ -60,27 +65,20 @@ export default BusRoutes = () => {
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        initialRegion={{
+        region={{
           latitude: personLocation.latitude,
           longitude: personLocation.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
       >
+        {destination?.features ? (
+          <Geojson geojson={destination} />
+        ) : (
+          console.log("Esperando datos de la ruta...")
+        )}
         {/* marca la ubicacion de la persona */}
         <Marker coordinate={personLocation} image={personImg} />
-        {/* marca la ubicacion de destino */}
-        {/* <Marker coordinate={destination} /> */}
-
-        {/* marca la ruta */}
-        {/* <MapViewDirections
-          origin={personLocation}
-          destination={destination}
-          image={personImg}
-          apikey={GOOGLE_MAPS_KEY}
-        /> */}
-
-        {/* <Polyline coordinates={[personLocation, destination]} /> */}
       </MapView>
     </View>
   );
