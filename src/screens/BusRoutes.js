@@ -6,31 +6,28 @@
 
 import * as React from "react";
 import * as Location from "expo-location";
-import { View, StyleSheet, Alert, ActivityIndicator, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import MapView, { Marker, Polyline, Callout } from "react-native-maps";
 import { GetRouters } from "../api/GetRouters";
 import { DOMParser } from "xmldom";
 import { kml } from "@tmcw/togeojson";
 
 export default BusRoutes = () => {
-  // Imagen del usuario
   const personImg = require("../../assets/person.png");
-
-  // Estado para la ubicación del usuario
   const [personLocation, setPersonLocation] = React.useState(null);
-
-  // Estado para almacenar las rutas obtenidas del KML
   const [routes, setRoutes] = React.useState([]);
-
-  // Estado para manejar la carga de datos
   const [loading, setLoading] = React.useState(true);
-
   const [selectedRoute, setSelectedRoute] = React.useState(null);
-
-  // Referencia al mapa para manipular la vista
   const mapRef = React.useRef(null);
 
-  // useEffect se ejecuta al montar el componente
+  // Efecto que solicita permisos de ubicación y carga las rutas al montar el componente
   React.useEffect(() => {
     (async () => {
       await getLocationPermission();
@@ -39,7 +36,8 @@ export default BusRoutes = () => {
   }, []);
 
   /**
-   * Solicita permiso de ubicación al usuario y obtiene su posición actual.
+   * Solicita permisos de ubicación al usuario y obtiene su ubicación actual.
+   * Si se concede el permiso, centra el mapa en la ubicación del usuario.
    */
   const getLocationPermission = async () => {
     try {
@@ -48,7 +46,6 @@ export default BusRoutes = () => {
         Alert.alert("Permiso denegado", "No podemos obtener tu ubicación.");
         return;
       }
-
       let location = await Location.getCurrentPositionAsync({});
       const userLocation = {
         latitude: location.coords.latitude,
@@ -56,14 +53,10 @@ export default BusRoutes = () => {
       };
       setPersonLocation(userLocation);
 
-      // Mueve la cámara del mapa a la ubicación del usuario
+      // Centrar el mapa en la ubicación del usuario
       if (mapRef.current) {
         mapRef.current.animateToRegion(
-          {
-            ...userLocation,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          },
+          { ...userLocation, latitudeDelta: 0.005, longitudeDelta: 0.005 },
           1000
         );
       }
@@ -73,31 +66,17 @@ export default BusRoutes = () => {
   };
 
   /**
-   * Carga las rutas desde el archivo KML proporcionado por la API.
+   * Carga las rutas de los colectivos desde un archivo KML y las procesa.
+   * Extrae coordenadas, nombres y colores de las rutas para su representación en el mapa.
    */
   const loadRoutes = async () => {
     try {
-      // console.log("Cargando rutas...");
-
       const response = await GetRouters();
-      if (!response) {
-        console.log("No se recibió respuesta del servidor.");
-        return;
-      }
-
+      if (!response) return;
       const theKml = new DOMParser().parseFromString(response);
       const converted = kml(theKml);
+      if (!converted?.features?.length) return;
 
-      if (
-        !converted ||
-        !converted.features ||
-        converted.features.length === 0
-      ) {
-        console.log("No se encontraron rutas en el KML.");
-        return;
-      }
-
-      // Extraer rutas y asignar color basado en el <name>
       const extractedRoutes = converted.features
         .map((feature, index) => {
           const coordinates =
@@ -105,34 +84,28 @@ export default BusRoutes = () => {
               latitude: lat,
               longitude: lng,
             })) || [];
+          if (!coordinates.length) return null;
 
-          if (coordinates.length === 0) {
-            console.log(`No se encontraron coordenadas en la ruta ${index}`);
-            return null;
-          }
-
-          // Obtener el <name> de la ruta y determinar el color
-          const routeName = feature.properties?.name
-            ? feature.properties.name.toLowerCase()
-            : "";
-          let routeColor = "#000000"; // Color por defecto
-          if (routeName.includes("vuelta")) {
-            routeColor = "red";
-          } else if (routeName.includes("ida")) {
-            routeColor = "green";
-          }
+          // Determinar el color de la ruta según su nombre
+          const routeName = feature.properties?.name?.toLowerCase() || "";
+          let routeColor = routeName.includes("vuelta")
+            ? "red"
+            : routeName.includes("ida")
+              ? "green"
+              : "black";
 
           return {
             id: index,
+            name: feature.properties?.description || "Ruta desconocida",
+            orientationRoutes: feature.properties?.name,
             coordinates,
             strokeColor: routeColor,
             strokeWidth: 2,
           };
         })
-        .filter((route) => route !== null); // Eliminar rutas vacías
+        .filter((route) => route);
 
       setRoutes(extractedRoutes);
-      // console.log("Rutas cargadas correctamente:", extractedRoutes.length);
     } catch (error) {
       console.error("Error cargando las rutas:", error);
     } finally {
@@ -152,30 +125,31 @@ export default BusRoutes = () => {
             initialRegion={
               personLocation
                 ? {
-                    latitude: personLocation.latitude,
-                    longitude: personLocation.longitude,
+                    ...personLocation,
                     latitudeDelta: 0.005,
                     longitudeDelta: 0.005,
                   }
                 : {
-                    latitude: 2.9343961682675244,
-                    longitude: -75.28085097157924,
+                    latitude: 2.9273, // Ubicación por defecto (Neiva, Huila)
+                    longitude: -75.2819,
                     latitudeDelta: 0.1,
                     longitudeDelta: 0.1,
                   }
             }
           >
+            {/* Dibujar las rutas en el mapa */}
             {routes.map((route) => (
               <Polyline
                 key={route.id}
                 coordinates={route.coordinates}
                 strokeColor={route.strokeColor}
-                strokeWidth={route.strokeWidth}
-                tappable={true} // Habilita el clic en la línea
-                onPress={() => setSelectedRoute(route)} // Guarda la ruta seleccionada
+                strokeWidth={selectedRoute?.id === route.id ? 4 : 2}
+                tappable={true}
+                onPress={() => setSelectedRoute(route)}
               />
             ))}
 
+            {/* Mostrar información de la ruta seleccionada */}
             {selectedRoute && (
               <Marker coordinate={selectedRoute.coordinates[0]}>
                 <Callout onPress={() => setSelectedRoute(null)}>
@@ -188,23 +162,35 @@ export default BusRoutes = () => {
               </Marker>
             )}
 
+            {/* Mostrar la ubicación del usuario */}
             {personLocation && (
               <Marker coordinate={personLocation} image={personImg} />
             )}
           </MapView>
 
-          {/* 📌 Leyenda de rutas */}
+          {/* Leyenda de rutas */}
           <View style={styles.legendContainer}>
             {routes.map((route) => (
-              <View key={route.id} style={styles.legendItem}>
+              <TouchableOpacity
+                key={route.id}
+                onPress={() => setSelectedRoute(route)}
+                style={styles.legendItem}
+              >
                 <View
                   style={[
                     styles.legendColor,
                     { backgroundColor: route.strokeColor },
                   ]}
                 />
-                <Text style={styles.legendText}>{route.name || "Ruta"}</Text>
-              </View>
+                <Text
+                  style={[
+                    styles.legendText,
+                    selectedRoute?.id === route.id && { color: "blue" },
+                  ]}
+                >
+                  {route.name} - {route.orientationRoutes || "IDA"}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         </>
@@ -225,14 +211,13 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     position: "absolute",
-    top: 20, // Ajusta la distancia desde la parte superior
-    right: 20, // Mueve la leyenda a la derecha
+    top: 20,
+    right: 20,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     padding: 10,
     borderRadius: 10,
     elevation: 5,
   },
-
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
