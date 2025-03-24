@@ -18,6 +18,7 @@ import MapView, { Marker, Polyline, Callout } from "react-native-maps";
 import { GetRouters } from "../api/GetRouters";
 import { DOMParser } from "xmldom";
 import { kml } from "@tmcw/togeojson";
+import { StatusBar } from "expo-status-bar";
 
 export default BusRoutes = () => {
   const personImg = require("../../assets/person.png");
@@ -115,6 +116,7 @@ export default BusRoutes = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="black" />
       {loading ? (
         <ActivityIndicator size="large" color="#000000" />
       ) : (
