@@ -17,7 +17,11 @@ export default function NavigationStack() {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="Routes" component={BusRoutes} />
-      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="Register" component={Register} />
     </Stack.Navigator>
   );
