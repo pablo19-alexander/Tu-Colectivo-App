@@ -7,6 +7,8 @@ import {
   TextInput,
   Dimensions,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard
 } from "react-native";
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import ButtonGradient from "../../components/ButtonGradient";
@@ -16,12 +18,7 @@ const { width, height } = Dimensions.get("window");
 export default function Login() {
   function SvgTop() {
     return (
-      <Svg
-        width={500}
-        height={324}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <Svg width={500} height={324} fill="none" xmlns="http://www.w3.org/2000/svg">
         <Path
           d="M297.871 315.826c73.405 13.896 165.338-13.964 202.129-29.63V230H1.326v63.5c69.15-42.913 204.789 4.957 296.545 22.326z"
           fill="url(#prefix__paint0_linear_103:6)"
@@ -32,33 +29,20 @@ export default function Login() {
           fill="url(#prefix__paint1_linear_103:6)"
         />
         <Defs>
-          <LinearGradient
-            id="prefix__paint0_linear_103:6"
-            x1={492.715}
-            y1={231.205}
-            x2={480.057}
-            y2={364.215}
-            gradientUnits="userSpaceOnUse"
-          >
+          <LinearGradient id="prefix__paint0_linear_103:6" x1={492.715} y1={231.205} x2={480.057} y2={364.215} gradientUnits="userSpaceOnUse">
             <Stop stopColor="#FFB677" />
-            <Stop offset={1} stopColor="#FF3CBD" />
+            <Stop offset={1} stopColor="#ff1e63" />
           </LinearGradient>
-          <LinearGradient
-            id="prefix__paint1_linear_103:6"
-            x1={7.304}
-            y1={4.155}
-            x2={144.016}
-            y2={422.041}
-            gradientUnits="userSpaceOnUse"
-          >
+          <LinearGradient id="prefix__paint1_linear_103:6" x1={7.304} y1={4.155} x2={144.016} y2={422.041} gradientUnits="userSpaceOnUse">
             <Stop stopColor="#FFB677" />
-            <Stop offset={1} stopColor="#FF3CBD" />
+            <Stop offset={1} stopColor="#ff1e63" />
           </LinearGradient>
         </Defs>
       </Svg>
     );
   }
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.mainContainer}>
       <View style={styles.containerSVG}>
         <SvgTop />
@@ -66,19 +50,19 @@ export default function Login() {
       <View style={styles.container}>
         <Text style={styles.titulo}>Login</Text>
         <Text style={styles.subTitle}>Iniciar sesión en su cuenta</Text>
-        <TextInput style={styles.textInput} placeholder="ingrese su email" />
+        <TextInput style={styles.textInput} placeholder="Ingrese su email" />
         <TextInput
           style={styles.textInput}
-          placeholder="contraseña"
+          placeholder="Contraseña"
           secureTextEntry={true}
         />
-        {/* <Text style={styles.forgotPassword}>Forgot your password?</Text> */}
         <ButtonGradient />
         <Text style={styles.forgotPassword}>Don't have an account?</Text>
         <StatusBar style="auto" />
       </View>
     </View>
-  );
+  </TouchableWithoutFeedback>
+);
 }
 
 const styles = StyleSheet.create({

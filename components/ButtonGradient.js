@@ -7,7 +7,7 @@ export default function  ButtonGradient () {
         <TouchableOpacity style={styles.container}>
             <LinearGradient
                 // Button Linear Gradient
-                colors={['#FFB677', '#FF3CBD']}
+                colors={['#FFB677', '#ff1e63']}
                 start={{x: 0, y: 0}}
                 end={{x: 1, y: 1}}    
                 style={styles.button}
