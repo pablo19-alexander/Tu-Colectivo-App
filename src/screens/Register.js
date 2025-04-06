@@ -40,6 +40,11 @@ export default function Register({ navigation }) {
       return;
     }
 
+    if (password.length < 6) {
+      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return;
