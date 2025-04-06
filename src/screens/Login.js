@@ -16,10 +16,13 @@ import ButtonGradient from "../../components/ButtonGradient";
 import SvgTop from "../../components/SvgTop";
 import appFirebase from "../../credenciales";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons"; // Asegúrate de tener esto instalado
 
 const auth = getAuth(appFirebase);
 const { width, height } = Dimensions.get("window");
+const db = getFirestore(appFirebase);
+
 
 export default function Login(props) {
   const [email, setEmail] = React.useState("");
@@ -28,26 +31,47 @@ export default function Login(props) {
 
   const validateLogin = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+  
     if (!email || !password) {
       Alert.alert("Error", "Por favor ingresa correo y contraseña");
       return;
     }
-
+  
     if (!emailRegex.test(email)) {
       Alert.alert("Error", "Por favor ingresa un correo electrónico válido.");
       return;
     }
-
+  
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert("Iniciando sesión", "Accediendo...");
-      props.navigation.navigate("Home");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+  
+      // Obtener el rol del usuario desde Firestore
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        const userRole = userData.role;
+  
+        Alert.alert("Iniciando sesión", `Rol: ${userRole}`);
+  
+        // Redireccionar según el rol
+        if (userRole === "admin") {
+          props.navigation.navigate("AdminDashboard");
+        } else if (userRole === "conductor") {
+          props.navigation.navigate("ConductorDashboard");
+        } else {
+          props.navigation.navigate("Home"); // usuario normal
+        }
+      } else {
+        Alert.alert("Error", "No se encontró información del usuario.");
+      }
     } catch (error) {
       console.log(error);
       Alert.alert("Error", "Correo o contraseña incorrectos");
     }
-  };
+  };  
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
