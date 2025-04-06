@@ -2,21 +2,21 @@ import React from "react";
 import { StyleSheet, Text, View, TextInput, Dimensions, TouchableOpacity} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function  ButtonGradient () {
+export default function ButtonGradient({ onPress }) {
     return (
-        <TouchableOpacity style={styles.container}>
-            <LinearGradient
-                // Button Linear Gradient
-                colors={['#FFB677', '#ff1e63']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}    
-                style={styles.button}
-            >
-                <Text style={styles.text}>SIGN IN</Text>
-            </LinearGradient>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.container} onPress={onPress}>
+        <LinearGradient
+          colors={['#FFB677', '#ff1e63']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.button}
+        >
+          <Text style={styles.text}>Ingresar</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     );
-}
+  }
+  
 
 const styles = StyleSheet.create({
     container: {
