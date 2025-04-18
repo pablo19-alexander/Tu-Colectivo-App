@@ -11,41 +11,23 @@ import {
   Keyboard,
   Alert,
 } from "react-native";
-import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import ButtonGradient from "../../components/ButtonGradient";
 import SvgTop from "../../components/SvgTop";
-import appFirebase from "../../credenciales";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons"; // Asegúrate de tener esto instalado
-
-const auth = getAuth(appFirebase);
-const { width, height } = Dimensions.get("window");
+import { ValidateLogin } from "../services/AuthService"; // Ajusta el path según tu estructura
 
 export default function Login(props) {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const validateLogin = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email || !password) {
-      Alert.alert("Error", "Por favor ingresa correo y contraseña");
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor ingresa un correo electrónico válido.");
-      return;
-    }
-
+  const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await ValidateLogin(email, password);
       Alert.alert("Iniciando sesión", "Accediendo...");
       props.navigation.navigate("Home");
     } catch (error) {
-      console.log(error);
-      Alert.alert("Error", "Correo o contraseña incorrectos");
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -86,7 +68,7 @@ export default function Login(props) {
             </TouchableOpacity>
           </View>
 
-          <ButtonGradient onPress={validateLogin} />
+          <ButtonGradient onPress={handleLogin} />
 
           <Text style={styles.forgotPassword}>
             ¿No tienes una cuenta?,{" "}

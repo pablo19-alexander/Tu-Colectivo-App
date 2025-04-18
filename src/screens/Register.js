@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TextInput,
-  Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
@@ -13,12 +12,8 @@ import {
 import { StatusBar } from "expo-status-bar";
 import ButtonGradient from "../../components/ButtonGradient";
 import SvgTop from "../../components/SvgTop";
-import appFirebase from "../../credenciales";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
-
-const auth = getAuth(appFirebase);
-const { width } = Dimensions.get("window");
+import { RegisterUser } from "../services/AuthService";
 
 export default function Register({ navigation }) {
   const [email, setEmail] = React.useState("");
@@ -28,30 +23,8 @@ export default function Register({ navigation }) {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const handleRegister = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Todos los campos son obligatorios.");
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor ingresa un correo electrónico válido.");
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Las contraseñas no coinciden.");
-      return;
-    }
-
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await RegisterUser(email, password, confirmPassword);
       Alert.alert("Registro exitoso", "Ya puedes iniciar sesión.");
       navigation.navigate("Login");
     } catch (error) {
