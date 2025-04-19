@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { RegisterUser } from "../services/AuthService";
 
 export default function Register({ navigation }) {
+  const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
@@ -24,7 +25,7 @@ export default function Register({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      await RegisterUser(email, password, confirmPassword);
+      await RegisterUser(email, password, confirmPassword, fullName, "user");
       Alert.alert("Registro exitoso", "Ya puedes iniciar sesión.");
       navigation.navigate("Login");
     } catch (error) {
@@ -45,6 +46,13 @@ export default function Register({ navigation }) {
         <View style={styles.container}>
           <Text style={styles.title}>Registrarse</Text>
           <Text style={styles.subTitle}>Crea una cuenta nueva</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre completo"
+            onChangeText={(text) => setFullName(text)}
+            autoCapitalize="none"
+          />
 
           <TextInput
             style={styles.input}

@@ -2,10 +2,14 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  deleteUser
 } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import appFirebase from "../../credenciales";
 
 const auth = getAuth(appFirebase);
+const db = getFirestore(appFirebase);
+
 // valida el inicion de sesion
 export const ValidateLogin = async (email, password) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,10 +32,10 @@ export const ValidateLogin = async (email, password) => {
 };
 
 // registra un usuario
-export const RegisterUser = async (email, password, confirmPassword) => {
+export const RegisterUser = async (email, password, confirmPassword, name, role) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!email || !password || !confirmPassword) {
+  if (!email || !password || !confirmPassword || !name) {
     throw new Error("Todos los campos son obligatorios.");
   }
 
@@ -48,9 +52,30 @@ export const RegisterUser = async (email, password, confirmPassword) => {
   }
 
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    return "success";
+
+    // creamos el usuario de autenticacion
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    try {
+
+      // guardamos el usuario en la base de datos
+      await setDoc(doc(db, "users", user.uid), {
+        Email: email,
+        Name: name,
+        Role: role || "User",
+      });
+
+      return "success";
+    } catch (firestoreError) {
+      await deleteUser(user);
+      throw new Error("Error al guardar en la base de datos. Usuario eliminado.");
+    }
   } catch (error) {
-    throw new Error(error.message);
+    if (error.code === "auth/email-already-in-use") {
+      throw new Error("El correo electrónico ya está en uso.");
+    } else {
+      throw new Error(error.message);
+    }
   }
 };
