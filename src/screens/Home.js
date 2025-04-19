@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,63 +8,133 @@ import {
   StyleSheet,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { Menu, Provider } from "react-native-paper";
+import { auth, appFirebase } from "../../credenciales"; // Asegúrate que esté bien exportado
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { Feather } from "@expo/vector-icons";
 
 export default function Home({ navigation }) {
+  const db = getFirestore(appFirebase);
+  const [user, setUser] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        // Verifica si el documento existe y tiene datos
+        if (docSnap.exists()) {
+          setUserRole(docSnap.data().Role); // Asegúrate que el campo se llame 'rol'
+        }
+      } else {
+        setUserRole(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setMenuVisible(false);
+  };
+
   const goToPage = (pageName) => {
     navigation.navigate(pageName);
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/fondo.jpg")} // Ruta de la imagen de fondo
-      style={styles.container}
-      imageStyle={styles.imageBackground} // Aplica el estilo para oscurecer la imagen
-    >
-      {/* Capa de oscurecimiento */}
-      <View style={styles.overlay}>
-        <StatusBar style="light" />
+    <Provider>
+      <ImageBackground
+        source={require("../../assets/fondo.jpg")}
+        style={styles.container}
+        imageStyle={styles.imageBackground}
+      >
+        <View style={styles.overlay}>
+          <StatusBar style="light" />
 
-        <View style={styles.header}>
-          <Text style={styles.title}>TU COLECTIVO</Text>
-        </View>
+          {/* Menú en la esquina superior derecha */}
+          <View style={styles.menuContainer}>
+            {user && (
+              <Menu
+                visible={menuVisible}
+                onDismiss={() => setMenuVisible(false)}
+                anchor={
+                  <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                    <Feather
+                      name="menu"
+                      size={40}
+                      color="#fff"
+                      style={{ marginTop: 10 }}
+                    />
+                  </TouchableOpacity>
+                }
+              >
+                <Menu.Item title={user.email} disabled />
+                {userRole === "admin" && (
+                  <Menu.Item
+                    onPress={() => {
+                      setMenuVisible(false);
+                      goToPage("UserForm");
+                    }}
+                    title="Usuarios"
+                  />
+                )}
+                <Menu.Item onPress={logout} title="Cerrar sesión" />
+              </Menu>
+            )}
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => goToPage("Routes")} // Navega a la pantalla "Routes"
-          >
-            <Text style={styles.buttonText}>Ver rutas</Text>
-            <Image
-              source={require("../../assets/location.png")}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
+          <View style={styles.header}>
+            <Text style={styles.title}>TU COLECTIVO</Text>
+          </View>
 
-          <Text style={styles.orText}>o</Text>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => goToPage("Login")} // Navega a la pantalla "Login"
-          >
-            <Text style={styles.buttonText}>log in</Text>
-            <Image
-              source={require("../../assets/login.png")}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-
-          <Text style={styles.registerText}>
-            ¿Aún no tienes una cuenta?,{" "}
-            <Text
-              style={styles.registerLink}
-              onPress={() => goToPage("Register")}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => goToPage("Routes")}
             >
-              Regístrate
-            </Text>
-          </Text>
+              <Text style={styles.buttonText}>Ver rutas</Text>
+              <Image
+                source={require("../../assets/location.png")}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            {!user && (
+              <>
+                <Text style={styles.orText}>o</Text>
+
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => goToPage("Login")}
+                >
+                  <Text style={styles.buttonText}>Log in</Text>
+                  <Image
+                    source={require("../../assets/login.png")}
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+
+                <Text style={styles.registerText}>
+                  ¿Aún no tienes una cuenta?,{" "}
+                  <Text
+                    style={styles.registerLink}
+                    onPress={() => goToPage("Register")}
+                  >
+                    Regístrate
+                  </Text>
+                </Text>
+              </>
+            )}
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </Provider>
   );
 }
 
@@ -79,11 +149,17 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.2)", // Capa oscura semitransparente
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
     width: "100%",
     height: "100%",
     alignItems: "center",
     justifyContent: "space-around",
+  },
+  menuContainer: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 1000,
   },
   header: {
     marginTop: -90,
