@@ -9,31 +9,20 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Menu, Provider } from "react-native-paper";
-import { auth, appFirebase } from "../../credenciales"; // Asegúrate que esté bien exportado
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { Feather } from "@expo/vector-icons";
+import { signOut } from "firebase/auth";
+import { auth } from "../../credenciales";
+import { Getuser } from "../services/AuthService";
 
 export default function Home({ navigation }) {
-  const db = getFirestore(appFirebase);
   const [user, setUser] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        // Verifica si el documento existe y tiene datos
-        if (docSnap.exists()) {
-          setUserRole(docSnap.data().Role); // Asegúrate que el campo se llame 'rol'
-        }
-      } else {
-        setUserRole(null);
-      }
+    const unsubscribe = Getuser((userData) => {
+      setUser(userData);
     });
+
     return unsubscribe;
   }, []);
 
@@ -56,8 +45,6 @@ export default function Home({ navigation }) {
       >
         <View style={styles.overlay}>
           <StatusBar style="light" />
-
-          {/* Menú en la esquina superior derecha */}
           <View style={styles.menuContainer}>
             {user && (
               <Menu
@@ -65,17 +52,12 @@ export default function Home({ navigation }) {
                 onDismiss={() => setMenuVisible(false)}
                 anchor={
                   <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                    <Feather
-                      name="menu"
-                      size={40}
-                      color="#fff"
-                      style={{ marginTop: 10 }}
-                    />
+                    <Feather name="menu" size={40} color="#fff" top={20} />
                   </TouchableOpacity>
                 }
               >
                 <Menu.Item title={user.email} disabled />
-                {userRole === "admin" && (
+                {user.Role === "admin" && (
                   <Menu.Item
                     onPress={() => {
                       setMenuVisible(false);
@@ -108,7 +90,6 @@ export default function Home({ navigation }) {
             {!user && (
               <>
                 <Text style={styles.orText}>o</Text>
-
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => goToPage("Login")}

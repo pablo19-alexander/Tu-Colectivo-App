@@ -24,7 +24,7 @@ export default function Login(props) {
   const handleLogin = async () => {
     try {
       await ValidateLogin(email, password);
-      Alert.alert("Iniciando sesión", "Accediendo...");
+      Alert.alert("Inicion de sesión exitoso", "Bienvenido!");
       props.navigation.navigate("Home");
     } catch (error) {
       Alert.alert("Error", error.message);

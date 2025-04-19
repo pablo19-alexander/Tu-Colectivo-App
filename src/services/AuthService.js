@@ -2,13 +2,11 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  deleteUser
+  deleteUser,
+  onAuthStateChanged,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import appFirebase from "../../credenciales";
-
-const auth = getAuth(appFirebase);
-const db = getFirestore(appFirebase);
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../credenciales";
 
 // valida el inicion de sesion
 export const ValidateLogin = async (email, password) => {
@@ -32,7 +30,13 @@ export const ValidateLogin = async (email, password) => {
 };
 
 // registra un usuario
-export const RegisterUser = async (email, password, confirmPassword, name, role) => {
+export const RegisterUser = async (
+  email,
+  password,
+  confirmPassword,
+  name,
+  role
+) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!email || !password || !confirmPassword || !name) {
@@ -52,13 +56,15 @@ export const RegisterUser = async (email, password, confirmPassword, name, role)
   }
 
   try {
-
     // creamos el usuario de autenticacion
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
 
     try {
-
       // guardamos el usuario en la base de datos
       await setDoc(doc(db, "users", user.uid), {
         Email: email,
@@ -69,7 +75,9 @@ export const RegisterUser = async (email, password, confirmPassword, name, role)
       return "success";
     } catch (firestoreError) {
       await deleteUser(user);
-      throw new Error("Error al guardar en la base de datos. Usuario eliminado.");
+      throw new Error(
+        "Error al guardar en la base de datos. Usuario eliminado."
+      );
     }
   } catch (error) {
     if (error.code === "auth/email-already-in-use") {
@@ -78,4 +86,29 @@ export const RegisterUser = async (email, password, confirmPassword, name, role)
       throw new Error(error.message);
     }
   }
+};
+
+// Función para escuchar cambios de autenticación y obtener el rol
+export const Getuser = (callback) => {
+  return onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      try {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          // crea un nuevo objeto con los datos del usuario
+          callback({ ...currentUser, ...userData });
+        } else {
+          callback(currentUser); // Usuario sin datos adicionales
+        }
+      } catch (error) {
+        console.error("Error al obtener el rol del usuario:", error);
+        callback(currentUser); // Retorna aunque haya error
+      }
+    } else {
+      callback(null);
+    }
+  });
 };
