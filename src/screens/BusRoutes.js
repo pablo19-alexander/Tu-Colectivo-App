@@ -19,6 +19,7 @@ import { GetRouters } from "../api/GetRouters";
 import { DOMParser } from "xmldom";
 import { kml } from "@tmcw/togeojson";
 import { StatusBar } from "expo-status-bar";
+import { GetUser } from "../services/AuthService";
 
 export default BusRoutes = () => {
   const personImg = require("../../assets/person.png");
@@ -27,12 +28,19 @@ export default BusRoutes = () => {
   const [loading, setLoading] = React.useState(true);
   const [selectedRoute, setSelectedRoute] = React.useState(null);
   const mapRef = React.useRef(null);
+  const [isLoggedIn, setUser] = React.useState(null);
+  const [visibleRoutes, setVisibleRoutes] = React.useState({});
 
   // Efecto que solicita permisos de ubicación y carga las rutas al montar el componente
   React.useEffect(() => {
     (async () => {
+      const unsubscribe = GetUser((userData) => {
+        setUser(userData);
+      });
       await getLocationPermission();
       await loadRoutes();
+
+      return unsubscribe;
     })();
   }, []);
 
@@ -107,6 +115,11 @@ export default BusRoutes = () => {
         .filter((route) => route);
 
       setRoutes(extractedRoutes);
+      const initialVisibility = {};
+      extractedRoutes.forEach((route) => {
+        initialVisibility[route.id] = true; // todas visibles por defecto
+      });
+      setVisibleRoutes(initialVisibility);
     } catch (error) {
       console.error("Error cargando las rutas:", error);
     } finally {
@@ -140,16 +153,19 @@ export default BusRoutes = () => {
             }
           >
             {/* Dibujar las rutas en el mapa */}
-            {routes.map((route) => (
-              <Polyline
-                key={route.id}
-                coordinates={route.coordinates}
-                strokeColor={route.strokeColor}
-                strokeWidth={selectedRoute?.id === route.id ? 4 : 2}
-                tappable={true}
-                onPress={() => setSelectedRoute(route)}
-              />
-            ))}
+            {routes.map(
+              (route) =>
+                visibleRoutes[route.id] && (
+                  <Polyline
+                    key={route.id}
+                    coordinates={route.coordinates}
+                    strokeColor={route.strokeColor}
+                    strokeWidth={selectedRoute?.id === route.id ? 4 : 2}
+                    tappable={true}
+                    onPress={() => setSelectedRoute(route)}
+                  />
+                )
+            )}
 
             {/* Mostrar información de la ruta seleccionada */}
             {selectedRoute && (
@@ -170,30 +186,94 @@ export default BusRoutes = () => {
             )}
           </MapView>
 
-          {/* Leyenda de rutas */}
+          {/* vista flotante de las rutas */}
           <View style={styles.legendContainer}>
-            {routes.map((route) => (
-              <TouchableOpacity
-                key={route.id}
-                onPress={() => setSelectedRoute(route)}
-                style={styles.legendItem}
-              >
-                <View
-                  style={[
-                    styles.legendColor,
-                    { backgroundColor: route.strokeColor },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.legendText,
-                    selectedRoute?.id === route.id && { color: "blue" },
-                  ]}
-                >
-                  {route.name} - {route.orientationRoutes || "IDA"}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {routes.map((route) => {
+              const isVisible = visibleRoutes[route.id];
+
+              return (
+                <View key={route.id} style={styles.legendItemContainer}>
+                  {/* Parte izquierda: color y texto */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedRoute(route);
+                      if (mapRef.current && route.coordinates.length > 0) {
+                        const middleIndex = Math.floor(
+                          route.coordinates.length / 2
+                        );
+                        const middleCoord = route.coordinates[middleIndex];
+
+                        mapRef.current.animateToRegion(
+                          {
+                            ...middleCoord,
+                            latitudeDelta: 0.06,
+                            longitudeDelta: 0.06,
+                          },
+                          1000
+                        );
+                      }
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flexShrink: 1,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: 4,
+                        marginRight: 8,
+                        backgroundColor: route.strokeColor,
+                        opacity: isVisible ? 1 : 0.3,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color:
+                          selectedRoute?.id === route.id
+                            ? "blue"
+                            : isVisible
+                              ? "#333"
+                              : "gray",
+                        textDecorationLine: !isVisible
+                          ? "line-through"
+                          : "none",
+                        flexShrink: 1,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {route.name} - {route.orientationRoutes || "IDA"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Parte derecha: botón de mostrar/ocultar si está logueado */}
+                  {isLoggedIn && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        setVisibleRoutes((prev) => ({
+                          ...prev,
+                          [route.id]: !prev[route.id],
+                        }))
+                      }
+                      style={{
+                        paddingVertical: 4,
+                        paddingHorizontal: 10,
+                        backgroundColor: isVisible ? "#e74c3c" : "#2ecc71",
+                        borderRadius: 6,
+                        marginLeft: 8,
+                      }}
+                    >
+                      <Text style={{ color: "#fff", fontSize: 12 }}>
+                        {isVisible ? "Ocultar" : "Mostrar"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
           </View>
         </>
       )}
@@ -220,19 +300,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 5,
   },
-  legendItem: {
+  legendItemContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 5,
-  },
-  legendColor: {
-    width: 20,
-    height: 10,
-    marginRight: 8,
-    borderRadius: 5,
-  },
-  legendText: {
-    fontSize: 14,
-    fontWeight: "bold",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginVertical: 4,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 2,
   },
 });

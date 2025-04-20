@@ -12,14 +12,14 @@ import { Menu, Provider } from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
 import { signOut } from "firebase/auth";
 import { auth } from "../../credenciales";
-import { Getuser } from "../services/AuthService";
+import { GetUser } from "../services/AuthService";
 
 export default function Home({ navigation }) {
   const [user, setUser] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = Getuser((userData) => {
+    const unsubscribe = GetUser((userData) => {
       setUser(userData);
     });
 

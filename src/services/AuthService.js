@@ -89,7 +89,7 @@ export const RegisterUser = async (
 };
 
 // Función para escuchar cambios de autenticación y obtener el rol
-export const Getuser = (callback) => {
+export const GetUser = (callback) => {
   return onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
       try {
