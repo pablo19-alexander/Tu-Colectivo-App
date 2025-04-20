@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { RegisterUser } from "../services/AuthService";
 
 export default function Register({ navigation }) {
+  
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");

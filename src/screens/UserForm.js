@@ -5,10 +5,13 @@ import {
   View,
   FlatList,
   ActivityIndicator,
+  Button, // Importamos el botón
+  Alert, // Importamos alert para mostrar mensajes
 } from "react-native";
 import { getAllUsers } from "../services/UserService"; // Asegúrate de que la ruta esté bien
 
-export default function UserForm() {
+export default function UserForm(props) {
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,11 +25,19 @@ export default function UserForm() {
     fetchUsers();
   }, []);
 
+  const handleEdit = (userId) => {
+    props.navigation.navigate("UpdateUserForm", { userId });
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.userCard}>
       <Text style={styles.name}>{item.Name || "Sin nombre"}</Text>
       <Text style={styles.email}>{item.Email}</Text>
       <Text style={styles.role}>Rol: {item.Role || "N/A"}</Text>
+      <Button
+        title="Editar"
+        onPress={() => handleEdit(item.id)} // Llamamos a la función de edición
+      />
     </View>
   );
 
@@ -42,7 +53,7 @@ export default function UserForm() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista de usuarios</Text>
+      <Text style={styles.title}>Usuarios</Text>
       <FlatList
         data={users}
         keyExtractor={(item) => item.id}
@@ -63,7 +74,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
-    textAlign: "center",
   },
   list: {
     paddingBottom: 20,
