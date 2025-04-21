@@ -30,6 +30,7 @@ export default BusRoutes = () => {
   const mapRef = React.useRef(null);
   const [isLoggedIn, setUser] = React.useState(null);
   const [visibleRoutes, setVisibleRoutes] = React.useState({});
+  const [showLegend, setShowLegend] = React.useState(false);
 
   // Efecto que solicita permisos de ubicación y carga las rutas al montar el componente
   React.useEffect(() => {
@@ -187,94 +188,96 @@ export default BusRoutes = () => {
           </MapView>
 
           {/* vista flotante de las rutas */}
-          <View style={styles.legendContainer}>
-            {routes.map((route) => {
-              const isVisible = visibleRoutes[route.id];
+          <View style={styles.floatingMenuContainer}>
+            <TouchableOpacity
+              onPress={() => setShowLegend((prev) => !prev)}
+              style={styles.floatingButton}
+            >
+              <Text style={styles.floatingButtonText}>
+                {showLegend ? "Ocultar rutas" : "Ver rutas"}
+              </Text>
+            </TouchableOpacity>
 
-              return (
-                <View key={route.id} style={styles.legendItemContainer}>
-                  {/* Parte izquierda: color y texto */}
-                  <TouchableOpacity
-                    onPress={() => {
-                      setSelectedRoute(route);
-                      if (mapRef.current && route.coordinates.length > 0) {
-                        const middleIndex = Math.floor(
-                          route.coordinates.length / 2
-                        );
-                        const middleCoord = route.coordinates[middleIndex];
+            {showLegend && (
+              <View
+                style={[
+                  styles.legendContainer,
+                  { maxWidth: isLoggedIn ? 300 : 150 }, // Ajusta la altura si esta logueado
+                ]}
+              >
+                {routes.map((route) => {
+                  const isVisible = visibleRoutes[route.id];
 
-                        mapRef.current.animateToRegion(
-                          {
-                            ...middleCoord,
-                            latitudeDelta: 0.06,
-                            longitudeDelta: 0.06,
-                          },
-                          1000
-                        );
-                      }
-                    }}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      flexShrink: 1,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: 4,
-                        marginRight: 8,
-                        backgroundColor: route.strokeColor,
-                        opacity: isVisible ? 1 : 0.3,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color:
-                          selectedRoute?.id === route.id
-                            ? "blue"
-                            : isVisible
-                              ? "#333"
-                              : "gray",
-                        textDecorationLine: !isVisible
-                          ? "line-through"
-                          : "none",
-                        flexShrink: 1,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {route.name} - {route.orientationRoutes || "IDA"}
-                    </Text>
-                  </TouchableOpacity>
+                  return (
+                    <View key={route.id} style={styles.legendItemContainer}>
+                      {/* Parte izquierda: color y texto */}
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedRoute(route);
+                          if (mapRef.current && route.coordinates.length > 0) {
+                            const middleIndex = Math.floor(route.coordinates.length / 2);
+                            const middleCoord = route.coordinates[middleIndex];
 
-                  {/* Parte derecha: botón de mostrar/ocultar si está logueado */}
-                  {isLoggedIn && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        setVisibleRoutes((prev) => ({
-                          ...prev,
-                          [route.id]: !prev[route.id],
-                        }))
-                      }
-                      style={{
-                        paddingVertical: 4,
-                        paddingHorizontal: 10,
-                        backgroundColor: isVisible ? "#e74c3c" : "#2ecc71",
-                        borderRadius: 6,
-                        marginLeft: 8,
-                      }}
-                    >
-                      <Text style={{ color: "#fff", fontSize: 12 }}>
-                        {isVisible ? "Ocultar" : "Mostrar"}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              );
-            })}
+                            mapRef.current.animateToRegion(
+                              {
+                                ...middleCoord,
+                                latitudeDelta: 0.06,
+                                longitudeDelta: 0.06,
+                              },
+                              1000
+                            );
+                          }
+                        }}
+                        style={styles.legendLeftSection}
+                      >
+                        <View
+                          style={[
+                            styles.legendColor,
+                            {
+                              backgroundColor: route.strokeColor,
+                              opacity: isVisible ? 1 : 0.3,
+                            },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.legendText,
+                            selectedRoute?.id === route.id && styles.legendTextSelected,
+                            !isVisible && styles.legendTextHidden,
+                          ]}
+                        >
+                          {route.name} - {route.orientationRoutes || "IDA"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* Parte derecha: botón de mostrar/ocultar si está logueado */}
+                      {isLoggedIn && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setVisibleRoutes((prev) => ({
+                              ...prev,
+                              [route.id]: !prev[route.id],
+                            }))
+                          }
+                          style={[
+                            styles.toggleButton,
+                            {
+                              backgroundColor: isVisible ? "#e74c3c" : "#2ecc71",
+                            },
+                          ]}
+                        >
+                          <Text style={styles.toggleButtonText}>
+                            {isVisible ? "Ocultar" : "Mostrar"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
+
         </>
       )}
     </View>
@@ -291,28 +294,73 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  legendContainer: {
+  floatingMenuContainer: {
     position: "absolute",
     top: 20,
     right: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    zIndex: 999,
+    alignItems: "flex-end",
+  },
+  floatingButton: {
+    backgroundColor: "#3498db",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginBottom: 10,
+    elevation: 4,
+  },
+  floatingButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  legendContainer: {
+    backgroundColor: "#fff",
     padding: 10,
     borderRadius: 10,
+    // maxHeight: 300,
+    width: 230,
     elevation: 5,
   },
   legendItemContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#fff",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    justifyContent: "flex-start",
     marginVertical: 4,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 3,
-    elevation: 2,
+  },
+  legendLeftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+    flex: 1,
+  },
+  legendColor: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 14,
+    color: "#333",
+    flexShrink: 1,
+    flexWrap: "wrap",
+  },
+  legendTextSelected: {
+    color: "blue",
+  },
+  legendTextHidden: {
+    color: "gray",
+    textDecorationLine: "line-through",
+  },
+  toggleButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  toggleButtonText: {
+    color: "#fff",
+    fontSize: 12,
   },
 });
