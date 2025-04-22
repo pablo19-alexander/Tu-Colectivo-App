@@ -34,15 +34,29 @@ export default BusRoutes = () => {
 
   // Efecto que solicita permisos de ubicación y carga las rutas al montar el componente
   React.useEffect(() => {
-    (async () => {
-      const unsubscribe = GetUser((userData) => {
-        setUser(userData);
-      });
+    const unsubscribe = GetUser((userData) => {
+      setUser(userData);
+    });
+  
+    // Función para pedir permisos y cargar rutas
+    const init = async () => {
       await getLocationPermission();
       await loadRoutes();
-
-      return unsubscribe;
-    })();
+    };
+  
+    // Llama la primera vez
+    init();
+  
+    // Ejecuta getLocationPermission cada minuto
+    const intervalId = setInterval(() => {
+      getLocationPermission();
+    }, 60000); // 60,000 ms = 1 minuto
+  
+    // Limpieza al desmontar
+    return () => {
+      clearInterval(intervalId);
+      unsubscribe?.();
+    };
   }, []);
 
   /**
