@@ -50,16 +50,21 @@ export default BusRoutes = () => {
    * Si se concede el permiso, centra el mapa en la ubicación del usuario.
    */
   const getLocationPermission = async () => {
+
     try {
+      // Solicitar permisos de ubicación
       let { status } = await Location.requestForegroundPermissionsAsync();
+
       if (status !== "granted") {
         Alert.alert("Permiso denegado", "No podemos obtener tu ubicación.");
         return;
       }
+
       let location = await Location.getCurrentPositionAsync({});
+
       const userLocation = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: 2.954973,//location.coords.latitude,
+        longitude: -75.297467//location.coords.longitude,
       };
       setPersonLocation(userLocation);
 
