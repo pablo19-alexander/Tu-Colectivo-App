@@ -6,6 +6,7 @@ import {
   Image,
   ImageBackground,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Menu, Provider } from "react-native-paper";
@@ -16,11 +17,13 @@ import { GetUser } from "../services/AuthService";
 
 export default function Home({ navigation }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
     const unsubscribe = GetUser((userData) => {
       setUser(userData);
+      setLoading(false); // Finaliza la carga
     });
 
     return unsubscribe;
@@ -43,8 +46,15 @@ export default function Home({ navigation }) {
         style={styles.container}
         imageStyle={styles.imageBackground}
       >
+        {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#FFF" />
+              </View>
+            ) : (
+              <>
         <View style={styles.overlay}>
           <StatusBar style="light" />
+          
           <View style={styles.menuContainer}>
             {user && (
               <Menu
@@ -76,44 +86,46 @@ export default function Home({ navigation }) {
           </View>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => goToPage("Routes")}
-            >
-              <Text style={styles.buttonText}>Ver rutas</Text>
-              <Image
-                source={require("../../assets/location.png")}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
-
-            {!user && (
-              <>
-                <Text style={styles.orText}>o</Text>
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => goToPage("Login")}
+                  onPress={() => goToPage("Routes")}
                 >
-                  <Text style={styles.buttonText}>Log in</Text>
+                  <Text style={styles.buttonText}>Ver rutas</Text>
                   <Image
-                    source={require("../../assets/login.png")}
+                    source={require("../../assets/location.png")}
                     style={styles.icon}
                   />
                 </TouchableOpacity>
 
-                <Text style={styles.registerText}>
-                  ¿Aún no tienes una cuenta?,{" "}
-                  <Text
-                    style={styles.registerLink}
-                    onPress={() => goToPage("Register")}
-                  >
-                    Regístrate
-                  </Text>
-                </Text>
-              </>
-            )}
+                {!user && (
+                  <>
+                    <Text style={styles.orText}>o</Text>
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => goToPage("Login")}
+                    >
+                      <Text style={styles.buttonText}>Log in</Text>
+                      <Image
+                        source={require("../../assets/login.png")}
+                        style={styles.icon}
+                      />
+                    </TouchableOpacity>
+
+                    <Text style={styles.registerText}>
+                      ¿Aún no tienes una cuenta?,{" "}
+                      <Text
+                        style={styles.registerLink}
+                        onPress={() => goToPage("Register")}
+                      >
+                        Regístrate
+                      </Text>
+                    </Text>
+                  </>
+                )}
           </View>
         </View>
+        </>
+        )}
       </ImageBackground>
     </Provider>
   );
@@ -189,4 +201,15 @@ const styles = StyleSheet.create({
     color: "#FF0000",
     fontWeight: "bold",
   },
+    loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.54)", // Fondo semi-transparente
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    zIndex: 1000,
+  }
+
 });
