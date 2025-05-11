@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import ButtonGradient from "../../components/ButtonGradient";
 import SvgTop from "../../components/SvgTop";
-import { Ionicons } from "@expo/vector-icons"; // Asegúrate de tener esto instalado
-import { ValidateLogin } from "../services/AuthService"; // Ajusta el path según tu estructura
+import { Ionicons } from "@expo/vector-icons";
+import { ValidateLogin } from "../services/AuthService";
 
 export default function Login(props) {
   const [email, setEmail] = React.useState("");

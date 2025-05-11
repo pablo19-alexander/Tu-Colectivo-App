@@ -1,5 +1,4 @@
 import {
-  getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   deleteUser,
@@ -90,25 +89,38 @@ export const RegisterUser = async (
 
 // Función para escuchar cambios de autenticación y obtener el rol
 export const GetUser = (callback) => {
-  return onAuthStateChanged(auth, async (currentUser) => {
-    if (currentUser) {
-      try {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          // crea un nuevo objeto con los datos del usuario
-          callback({ ...currentUser, ...userData });
-        } else {
-          callback(currentUser); // Usuario sin datos adicionales
-        }
-      } catch (error) {
-        console.error("Error al obtener el rol del usuario:", error);
-        callback(currentUser); // Retorna aunque haya error
-      }
-    } else {
+  try {
+    if (!auth) {
       callback(null);
+      return;
     }
-  });
+
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const docRef = doc(db, "users", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            callback({ ...currentUser, ...userData });
+          } else {
+            console.warn("Documento de usuario no encontrado");
+            callback(currentUser);
+          }
+        } catch (error) {
+          console.error("Error al obtener el rol del usuario:", error);
+          callback(currentUser);
+        }
+      } else {
+        callback(null);
+      }
+    });
+
+    return unsubscribe;
+
+  } catch (error) {
+    console.error("Error inicializando Auth:", error.message);
+    callback(null);
+  }
 };
