@@ -68,7 +68,7 @@ export const RegisterUser = async (
       await setDoc(doc(db, "users", user.uid), {
         Email: email,
         Name: name,
-        Role: role || "User",
+        Role: role || "user",
       });
 
       return "success";
@@ -91,11 +91,14 @@ export const RegisterUser = async (
 export const GetUser = (callback) => {
   try {
     if (!auth) {
+      console.warn("No se pudo inicializar la autenticación");
       callback(null);
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log("Estado de autenticación cambiado:", currentUser);
+      
       if (currentUser) {
         try {
           const docRef = doc(db, "users", currentUser.uid);
@@ -103,6 +106,7 @@ export const GetUser = (callback) => {
 
           if (docSnap.exists()) {
             const userData = docSnap.data();
+            console.log("Datos del usuario obtenidos:", userData);
             callback({ ...currentUser, ...userData });
           } else {
             console.warn("Documento de usuario no encontrado");
@@ -113,6 +117,7 @@ export const GetUser = (callback) => {
           callback(currentUser);
         }
       } else {
+        console.warn("Usuario no autenticado");
         callback(null);
       }
     });
@@ -124,3 +129,4 @@ export const GetUser = (callback) => {
     callback(null);
   }
 };
+
